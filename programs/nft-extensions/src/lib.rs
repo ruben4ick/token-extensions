@@ -7,7 +7,7 @@ pub mod errors;
 
 use instructions::*;
 
-declare_id!("HwKJJ4LkankpZsPrJYc5WzfU2uJjFK1f7FZYU7VCZRDu");
+declare_id!("BDGkn8TaSruGCNHyq5BJqUwzFXcXpPACzGMHM8dw4KfQ");
 
 #[program]
 pub mod nft_extensions {
@@ -27,7 +27,8 @@ pub mod nft_extensions {
         mint_character::mint_character(ctx, name, class, weapon)
     }
 
-    pub fn complete_mission(ctx: Context<CompleteMission>) -> Result<()> {
-        complete_mission::complete_mission(ctx)
+
+    pub fn complete_mission(ctx: Context<CompleteMission>,  xp_gain: u32) -> Result<()> {
+        complete_mission::complete_mission(ctx, xp_gain)
     }
 }

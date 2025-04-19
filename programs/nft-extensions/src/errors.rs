@@ -1,3 +1,4 @@
+//errors.rs
 use anchor_lang::error_code;
 
 #[error_code]
@@ -14,4 +15,10 @@ pub enum ProgramErrorCode {
     CantCreateTokenAccount,
     #[msg("Cant create metadata pointer")]
     CantCreateMetadataPointer,
+}
+
+#[error_code]
+pub enum GameErrorCode {
+    #[msg("Wrong Authority")]
+    WrongAuthority,
 }

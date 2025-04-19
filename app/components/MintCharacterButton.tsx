@@ -7,6 +7,7 @@ import { Button } from "@chakra-ui/react"
 import { Keypair, SystemProgram, PublicKey } from "@solana/web3.js"
 import { TOKEN_2022_PROGRAM_ID, getAssociatedTokenAddressSync, ASSOCIATED_TOKEN_PROGRAM_ID } from "@solana/spl-token"
 import { useCallback, useState } from "react"
+import { web3 } from "@coral-xyz/anchor"
 import { program } from "@/utils/anchor"
 
 const MintCharacterButton = () => {
@@ -23,18 +24,24 @@ const MintCharacterButton = () => {
         setIsMinting(true)
 
         try {
-            const mint = Keypair.generate()
+            const mint = new Keypair();
             const tokenAccount = getAssociatedTokenAddressSync(
                 mint.publicKey,
                 publicKey,
                 false,
-                TOKEN_2022_PROGRAM_ID
+                TOKEN_2022_PROGRAM_ID,
+                ASSOCIATED_TOKEN_PROGRAM_ID
             )
 
-            const metadataPDA = PublicKey.findProgramAddressSync(
-                [Buffer.from("character"), publicKey.toBuffer()],
+            // const metadataPDA = PublicKey.findProgramAddressSync(
+            //     [Buffer.from("character"), publicKey.toBuffer()],
+            //     program.programId
+            // )[0]
+
+            const nftAuthority = PublicKey.findProgramAddressSync(
+                [Buffer.from("nft_authority")],
                 program.programId
-            )[0]
+            );
 
             const tx = await program.methods
                 .mintCharacter("Ryu", "Warrior", "Katana")
@@ -42,14 +49,31 @@ const MintCharacterButton = () => {
                     payer: publicKey,
                     systemProgram: SystemProgram.programId,
                     tokenProgram: TOKEN_2022_PROGRAM_ID,
-                    tokenAccount: tokenAccount,
-                    mint: mint.publicKey,
-                    metadataAccount: metadataPDA,
                     associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-                    rent: PublicKey.findProgramAddressSync([], SystemProgram.programId)[0],
+                    rent: web3.SYSVAR_RENT_PUBKEY,
+                    mint: mint.publicKey,
+                    tokenAccount,
+                    nftAuthority: nftAuthority[0],
                 })
                 .signers([mint])
                 .transaction()
+
+
+            console.log("Transaction Parameters:", {
+                method: "mintCharacter",
+                args: ["Ryu", "Warrior", "Katana"],
+                accounts: {
+                    payer: publicKey.toBase58(),
+                    systemProgram: SystemProgram.programId.toBase58(),
+                    tokenProgram: TOKEN_2022_PROGRAM_ID.toBase58(),
+                    tokenAccount: tokenAccount.toBase58(),
+                    mint: mint.publicKey.toBase58(),
+                    // metadataAccount: metadataPDA.toBase58(),
+                    associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID.toBase58(),
+                    rent: web3.SYSVAR_RENT_PUBKEY.toBase58(),
+                    nftAuthority: nftAuthority[0],
+                },
+            })
 
             const txSig = await sendTransaction(tx, connection, {
                 signers: [mint],

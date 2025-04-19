@@ -4,47 +4,17 @@ use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::{ self, AssociatedToken },
     token_2022,
-    token_interface::{ spl_token_2022::instruction::AuthorityType, Token2022 },
+    token_interface::{ spl_token_2022::instruction::AuthorityType, Token2022, TokenAccount },
 };
 use anchor_lang::solana_program::{
     program::{invoke, invoke_signed},
     system_instruction,
     sysvar::rent::Rent,
 };
-
 use spl_token_2022::{ extension::ExtensionType, state::Mint };
 
 
 pub use crate::state::character_data::CharacterMetadata;
-
-#[derive(Accounts)]
-#[instruction(name: String, class: String, weapon: String)]
-pub struct MintCharacter<'info> {
-    #[account(mut)]
-    pub payer: Signer<'info>,
-
-    #[account(
-        init,
-        payer = payer,
-        space = 8 + CharacterMetadata::LEN,
-        seeds = [b"character", payer.key().as_ref()],
-        bump
-    )]
-    pub metadata_account: Account<'info, CharacterMetadata>,
-
-    /// CHECK: створюється вручну
-    #[account(mut)]
-    pub mint: UncheckedAccount<'info>,
-
-    /// CHECK: створюється вручну
-    #[account(mut)]
-    pub token_account: UncheckedAccount<'info>,
-
-    pub token_program: Program<'info, Token2022>,
-    pub associated_token_program: Program<'info, AssociatedToken>,
-    pub system_program: Program<'info, System>,
-    pub rent: Sysvar<'info, Rent>,
-}
 
 pub fn mint_character(
     ctx: Context<MintCharacter>,
@@ -52,71 +22,133 @@ pub fn mint_character(
     class: String,
     weapon: String,
 ) -> Result<()> {
-    let mint_key = ctx.accounts.mint.key();
-    let metadata_key = ctx.accounts.metadata_account.key();
-
-    // 1. Порахувати скільки потрібно місця для mint account з розширеннями
-    let extensions = &[
-        ExtensionType::MetadataPointer,
-        ExtensionType::NonTransferable,
-    ];
+    // let extensions = &[
+    //     ExtensionType::MetadataPointer,
+    //     ExtensionType::NonTransferable,
+    // ];
     let mint_space = match
-    ExtensionType::try_calculate_account_len::<Mint>(extensions)
+    // ExtensionType::try_calculate_account_len::<Mint>(extensions)
+    ExtensionType::try_calculate_account_len::<Mint>(&[ExtensionType::MetadataPointer])
     {
         Ok(space) => space,
         Err(_) => {
             return err!(ProgramErrorCode::InvalidMintAccountSpace);
         }
     };
-    let mint_rent = Rent::get()?.minimum_balance(mint_space);
+    let meta_data_space = 250;
+    let mint_rent = Rent::get()?.minimum_balance(mint_space + meta_data_space);
 
-    // 2. Створити акаунт mint
-    invoke(
-        &system_instruction::create_account(
-            ctx.accounts.payer.key,
-            &mint_key,
-            mint_rent,
-            mint_space as u64,
-            &ctx.accounts.token_program.key(),
+    anchor_lang::system_program::create_account(
+        CpiContext::new(
+            ctx.accounts.system_program.to_account_info(),
+            anchor_lang::system_program::CreateAccount {
+                from: ctx.accounts.payer.to_account_info(),
+                to:   ctx.accounts.mint.to_account_info(),
+            },
         ),
-        &[
-            ctx.accounts.payer.to_account_info(),
-            ctx.accounts.mint.to_account_info(),
-        ],
+        mint_rent,
+        mint_space as u64,
+        &ctx.accounts.token_program.key()
     )?;
 
-    // 3. Ініціалізувати metadata pointer до metadata_account
-    let ix = spl_token_2022::extension::metadata_pointer::instruction::initialize(
-        &Token2022::id(),
-        &mint_key,
-        Some(ctx.accounts.payer.key()),
-        Some(metadata_key),
+    anchor_lang::system_program::assign(
+        CpiContext::new(ctx.accounts.token_program.to_account_info(), anchor_lang::system_program::Assign {
+            account_to_assign: ctx.accounts.mint.to_account_info(),
+        }),
+        &token_2022::ID
     )?;
+
+    // Initialize the metadata pointer
+    let init_meta_data_pointer_ix =
+        spl_token_2022::extension::metadata_pointer::instruction::initialize(
+            &Token2022::id(),
+            &ctx.accounts.mint.key(),
+            Some(ctx.accounts.nft_authority.key()),
+            Some(ctx.accounts.mint.key()),
+        )?;
+
     invoke(
-        &ix,
+        &init_meta_data_pointer_ix,
         &[
             ctx.accounts.mint.to_account_info(),
-            ctx.accounts.payer.to_account_info(),
+            ctx.accounts.nft_authority.to_account_info()
         ],
     )?;
 
-    // 4. Ініціалізувати mint з extensions (0 decimals, NFT)
-    let cpi_ctx = CpiContext::new(
+    // Initialize the mint cpi
+    let mint_cpi_ix = CpiContext::new(
         ctx.accounts.token_program.to_account_info(),
         token_2022::InitializeMint2 {
             mint: ctx.accounts.mint.to_account_info(),
         },
     );
-    token_2022::initialize_mint2(cpi_ctx, 0, ctx.accounts.payer.key, Some(ctx.accounts.payer.key))?;
+
+    token_2022::initialize_mint2(
+        mint_cpi_ix,
+        0,
+        &ctx.accounts.nft_authority.key(),
+        None)?;
 
     // 5. Записати метадані у PDA
-    let metadata = &mut ctx.accounts.metadata_account;
-    metadata.authority = ctx.accounts.payer.key();
-    metadata.name = name;
-    metadata.class = class;
-    metadata.weapon = weapon;
-    metadata.level = 1;
-    metadata.experience = 0;
+    // let metadata = &mut ctx.accounts.metadata_account;
+    // metadata.authority = ctx.accounts.payer.key();
+    // metadata.name = name;
+    // metadata.class = class;
+    // metadata.weapon = weapon;
+    // metadata.level = 1;
+    // metadata.experience = 0;
+
+    let seeds = b"nft_authority";
+    let bump = ctx.bumps.nft_authority;
+    let signer: &[&[&[u8]]] = &[&[seeds, &[bump]]];
+
+    msg!("Init metadata {0}", ctx.accounts.nft_authority.to_account_info().key);
+
+    // Init the metadata account
+    let init_token_meta_data_ix = &spl_token_metadata_interface::instruction::initialize(
+        &spl_token_2022::id(),
+        ctx.accounts.mint.key,
+        ctx.accounts.nft_authority.to_account_info().key,
+        ctx.accounts.mint.key,
+        ctx.accounts.nft_authority.to_account_info().key,
+        name.clone(),
+        "RPG".to_string(),
+        "https://arweave.net/KztnFY2ZBU4M1nAntxJAuB6ocIyFSmhIysTCnYLxQDg".to_string()
+    );
+
+    invoke_signed(
+        init_token_meta_data_ix,
+        &[
+            ctx.accounts.mint.to_account_info().clone(),
+            ctx.accounts.nft_authority.to_account_info().clone(),
+        ],
+        signer
+    )?;
+
+    // 6. Add extra metadata
+    for (key, val) in [
+        ("class", class.as_str()),
+        ("weapon", weapon.as_str()),
+        ("level", "1"),
+        ("xp", "0"),
+    ] {
+        let ix = &spl_token_metadata_interface::instruction::update_field(
+            &spl_token_2022::id(),
+            ctx.accounts.mint.key,
+            ctx.accounts.nft_authority.to_account_info().key,
+            spl_token_metadata_interface::state::Field::Key(key.to_string()),
+            val.to_string(),
+        );
+
+        invoke_signed(
+            &ix,
+            &[
+                ctx.accounts.mint.to_account_info().clone(),
+                ctx.accounts.nft_authority.to_account_info().clone(),
+            ],
+            signer,
+        )?;
+    }
 
     // 6. Створити ATA для токена
     associated_token::create(CpiContext::new(
@@ -133,25 +165,27 @@ pub fn mint_character(
 
     // 7. Мінтнути 1 NFT користувачу
     token_2022::mint_to(
-        CpiContext::new(
+        CpiContext::new_with_signer(
             ctx.accounts.token_program.to_account_info(),
             token_2022::MintTo {
                 mint: ctx.accounts.mint.to_account_info(),
                 to: ctx.accounts.token_account.to_account_info(),
-                authority: ctx.accounts.payer.to_account_info(),
+                authority: ctx.accounts.nft_authority.to_account_info(),
             },
+            signer
         ),
         1,
     )?;
 
     // 8. Заморозити можливість домінтити NFT
     token_2022::set_authority(
-        CpiContext::new(
+        CpiContext::new_with_signer(
             ctx.accounts.token_program.to_account_info(),
             token_2022::SetAuthority {
-                current_authority: ctx.accounts.payer.to_account_info(),
+                current_authority: ctx.accounts.nft_authority.to_account_info(),
                 account_or_mint: ctx.accounts.mint.to_account_info(),
             },
+            signer
         ),
         AuthorityType::MintTokens,
         None,
@@ -159,3 +193,37 @@ pub fn mint_character(
 
     Ok(())
 }
+
+#[derive(Accounts)]
+// #[instruction(name: String, class: String, weapon: String)]
+pub struct MintCharacter<'info> {
+    #[account(mut)]
+    pub payer: Signer<'info>,
+    pub system_program: Program<'info, System>,
+    pub token_program: Program<'info, Token2022>,
+    /// CHECK: We will create this one for the user
+    #[account(mut)]
+    pub token_account: AccountInfo<'info>,
+    #[account(mut)]
+    pub mint: Signer<'info>,
+    pub rent: Sysvar<'info, Rent>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    #[account(init_if_needed, seeds = [b"nft_authority".as_ref()], bump, space = 8, payer = payer)]
+    pub nft_authority: Account<'info, NftAuthority>,
+
+
+
+    // #[account(
+    //     init,
+    //     payer = payer,
+    //     space = 8 + CharacterMetadata::LEN,
+    //     seeds = [b"character", payer.key().as_ref()],
+    //     bump
+    // )]
+    // pub metadata_account: Account<'info, CharacterMetadata>,
+
+
+}
+
+#[account]
+pub struct NftAuthority {}

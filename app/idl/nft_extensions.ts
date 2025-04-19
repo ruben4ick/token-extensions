@@ -1,5 +1,5 @@
 export type NftExtensions = {
-  "address": "HwKJJ4LkankpZsPrJYc5WzfU2uJjFK1f7FZYU7VCZRDu",
+  "address": "BDGkn8TaSruGCNHyq5BJqUwzFXcXpPACzGMHM8dw4KfQ",
   "metadata": {
     "name": "nft_extensions",
     "version": "0.1.0",
@@ -21,15 +21,40 @@ export type NftExtensions = {
       ],
       "accounts": [
         {
-          "name": "metadata_account",
-          "writable": true
+          "name": "character",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  104,
+                  97,
+                  114,
+                  97,
+                  99,
+                  116,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "character.authority",
+                "account": "CharacterMetadata"
+              }
+            ]
+          }
         },
         {
-          "name": "authority",
-          "signer": true,
-          "relations": [
-            "metadata_account"
-          ]
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         },
         {
           "name": "mint",
@@ -37,6 +62,7 @@ export type NftExtensions = {
         },
         {
           "name": "nft_authority",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -65,7 +91,12 @@ export type NftExtensions = {
           "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "xp_gain",
+          "type": "u32"
+        }
+      ]
     },
     {
       "name": "mint_character",
@@ -89,54 +120,55 @@ export type NftExtensions = {
           "signer": true
         },
         {
-          "name": "metadata_account",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  104,
-                  97,
-                  114,
-                  97,
-                  99,
-                  116,
-                  101,
-                  114
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "payer"
-              }
-            ]
-          }
-        },
-        {
-          "name": "mint",
-          "writable": true
-        },
-        {
-          "name": "token_account",
-          "writable": true
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         },
         {
           "name": "token_program",
           "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
         },
         {
-          "name": "associated_token_program",
-          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+          "name": "token_account",
+          "writable": true
         },
         {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
+          "name": "mint",
+          "writable": true,
+          "signer": true
         },
         {
           "name": "rent",
           "address": "SysvarRent111111111111111111111111111111111"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "nft_authority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  110,
+                  102,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              }
+            ]
+          }
         }
       ],
       "args": [
@@ -167,6 +199,19 @@ export type NftExtensions = {
         164,
         19,
         190
+      ]
+    },
+    {
+      "name": "NftAuthority",
+      "discriminator": [
+        194,
+        127,
+        219,
+        16,
+        219,
+        18,
+        250,
+        12
       ]
     }
   ],
@@ -221,25 +266,32 @@ export type NftExtensions = {
             "type": "string"
           },
           {
+            "name": "weapon",
+            "type": "string"
+          },
+          {
             "name": "level",
             "type": "u8"
           },
           {
-            "name": "experience",
+            "name": "xp",
             "type": "u32"
-          },
-          {
-            "name": "weapon",
-            "type": "string"
           }
         ]
+      }
+    },
+    {
+      "name": "NftAuthority",
+      "type": {
+        "kind": "struct",
+        "fields": []
       }
     }
   ];
 };
 
 export const IDL: NftExtensions = {
-  "address": "HwKJJ4LkankpZsPrJYc5WzfU2uJjFK1f7FZYU7VCZRDu",
+  "address": "BDGkn8TaSruGCNHyq5BJqUwzFXcXpPACzGMHM8dw4KfQ",
   "metadata": {
     "name": "nft_extensions",
     "version": "0.1.0",
@@ -261,15 +313,40 @@ export const IDL: NftExtensions = {
       ],
       "accounts": [
         {
-          "name": "metadata_account",
-          "writable": true
+          "name": "character",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  104,
+                  97,
+                  114,
+                  97,
+                  99,
+                  116,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "character.authority",
+                "account": "CharacterMetadata"
+              }
+            ]
+          }
         },
         {
-          "name": "authority",
-          "signer": true,
-          "relations": [
-            "metadata_account"
-          ]
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         },
         {
           "name": "mint",
@@ -277,6 +354,7 @@ export const IDL: NftExtensions = {
         },
         {
           "name": "nft_authority",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -305,7 +383,12 @@ export const IDL: NftExtensions = {
           "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "xp_gain",
+          "type": "u32"
+        }
+      ]
     },
     {
       "name": "mint_character",
@@ -329,54 +412,55 @@ export const IDL: NftExtensions = {
           "signer": true
         },
         {
-          "name": "metadata_account",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  104,
-                  97,
-                  114,
-                  97,
-                  99,
-                  116,
-                  101,
-                  114
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "payer"
-              }
-            ]
-          }
-        },
-        {
-          "name": "mint",
-          "writable": true
-        },
-        {
-          "name": "token_account",
-          "writable": true
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         },
         {
           "name": "token_program",
           "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
         },
         {
-          "name": "associated_token_program",
-          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+          "name": "token_account",
+          "writable": true
         },
         {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
+          "name": "mint",
+          "writable": true,
+          "signer": true
         },
         {
           "name": "rent",
           "address": "SysvarRent111111111111111111111111111111111"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "nft_authority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  110,
+                  102,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              }
+            ]
+          }
         }
       ],
       "args": [
@@ -407,6 +491,19 @@ export const IDL: NftExtensions = {
         164,
         19,
         190
+      ]
+    },
+    {
+      "name": "NftAuthority",
+      "discriminator": [
+        194,
+        127,
+        219,
+        16,
+        219,
+        18,
+        250,
+        12
       ]
     }
   ],
@@ -461,18 +558,25 @@ export const IDL: NftExtensions = {
             "type": "string"
           },
           {
+            "name": "weapon",
+            "type": "string"
+          },
+          {
             "name": "level",
             "type": "u8"
           },
           {
-            "name": "experience",
+            "name": "xp",
             "type": "u32"
-          },
-          {
-            "name": "weapon",
-            "type": "string"
           }
         ]
+      }
+    },
+    {
+      "name": "NftAuthority",
+      "type": {
+        "kind": "struct",
+        "fields": []
       }
     }
   ]

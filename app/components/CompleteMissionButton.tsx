@@ -1,138 +1,111 @@
-/*
+//CompleteMissionButton.tsx
+"use client"
+import Image from "next/image"
 import { useCallback, useState } from "react"
-import { Button, VStack, HStack } from "@chakra-ui/react"
+import { Button, HStack, VStack } from "@chakra-ui/react"
 import { useConnection, useWallet } from "@solana/wallet-adapter-react"
-import { useAnchor } from "../utils/anchor"
-import { PublicKey } from "@solana/web3.js"
 import { useSessionWallet } from "@magicblock-labs/gum-react-sdk"
-import { TOKEN_2022_PROGRAM_ID } from "@solana/spl-token"
+import { useCharacterState } from "@/contexts/CharacterStateProvider";
 import { useNftState } from "@/contexts/NftProvider"
+import { program } from "@/utils/anchor"
+import { PublicKey } from "@solana/web3.js"
+import { TOKEN_2022_PROGRAM_ID } from "@solana/spl-token"
 
 const CompleteMissionButton = () => {
     const { publicKey, sendTransaction } = useWallet()
     const { connection } = useConnection()
-    const { program } = useAnchor()
     const sessionWallet = useSessionWallet()
     const { nftState } = useNftState()
+    const { characterDataPDA } = useCharacterState();
+    const [isLoadingSession, setIsLoadingSession] = useState(false)
+    const [isLoadingMainWallet, setIsLoadingMainWallet] = useState(false)
+    const XP_GAIN = 5
 
-    const [loadingSession, setLoadingSession] = useState(false)
-    const [loadingWallet, setLoadingWallet] = useState(false)
-
-    const getNftAuthorityPDA = async () => {
-        return PublicKey.findProgramAddressSync(
+    const getNftCharacter = async () => {
+        const [nftAuthority] = await PublicKey.findProgramAddress(
             [Buffer.from("nft_authority")],
             program.programId
-        )[0]
-    }
-
-    const findNft = async (nftAuthority: PublicKey) => {
+        )
         return nftState.items.find(
-            (nft: any) =>
-                nft.authorities[0]?.address === nftAuthority.toBase58()
+            (nft) => nft.authorities[0]?.address === nftAuthority.toBase58()
         )
     }
 
-    const sendCompleteMissionTx = async ({
-                                             signer,
-                                             sessionToken = null,
-                                             mint,
-                                         }: {
-        signer: PublicKey
-        sessionToken?: string | null
-        mint: PublicKey
-    }) => {
-        const nftAuthority = await getNftAuthorityPDA()
+    const handleCompleteMission = useCallback(
+        async (isSession: boolean) => {
+            if (!characterDataPDA) return
 
-        const metadataAccount = PublicKey.findProgramAddressSync(
-            [Buffer.from("character"), signer.toBuffer()],
-            program.programId
-        )[0]
+            const nft = await getNftCharacter()
+            if (!nft) {
+                window.alert("Mint your NFT character first")
+                return
+            }
 
-        const tx = await program.methods
-            .completeMission()
-            .accounts({
-                metadataAccount,
-                authority: signer,
-                mint,
-                nftAuthority,
-                tokenProgram: TOKEN_2022_PROGRAM_ID,
-                sessionToken,
-            })
-            .transaction()
+            const [nftAuthority] = await PublicKey.findProgramAddress(
+                [Buffer.from("nft_authority")],
+                program.programId
+            )
 
-        return tx
-    }
+            try {
+                if (isSession && sessionWallet) {
+                    setIsLoadingSession(true)
 
-    const onCompleteWithSession = useCallback(async () => {
-        if (!sessionWallet || !sessionWallet.sessionToken) return
-        setLoadingSession(true)
+                    const tx = await program.methods
+                        .completeMission(XP_GAIN)
+                        .accounts({
+                            character: characterDataPDA,
+                            signer: sessionWallet.publicKey!,
+                            mint: nft.id,
+                            nftAuthority,
+                            systemProgram: PublicKey.default,
+                            tokenProgram: TOKEN_2022_PROGRAM_ID,
+                        })
+                        .transaction()
 
-        try {
-            const nftAuthority = await getNftAuthorityPDA()
-            const nft = await findNft(nftAuthority)
-            if (!nft) return alert("❌ NFT not found!")
+                    const txids = await sessionWallet.signAndSendTransaction!(tx)
+                    console.log("Mission transaction (session):", txids)
+                } else if (publicKey) {
+                    setIsLoadingMainWallet(true)
 
-            const tx = await sendCompleteMissionTx({
-                signer: sessionWallet.publicKey!,
-                sessionToken: sessionWallet.sessionToken,
-                mint: new PublicKey(nft.id),
-            })
+                    const tx = await program.methods
+                        .completeMission(XP_GAIN)
+                        .accounts({
+                            character: characterDataPDA,
+                            signer: publicKey,
+                            mint: nft.id,
+                            nftAuthority,
+                            systemProgram: PublicKey.default,
+                            tokenProgram: TOKEN_2022_PROGRAM_ID,
+                        })
+                        .transaction()
 
-            const txids = await sessionWallet.signAndSendTransaction!(tx)
-            console.log("✅ Session Tx sent:", txids)
-        } catch (e) {
-            console.error("❌ Session tx error:", e)
-        } finally {
-            setLoadingSession(false)
-        }
-    }, [sessionWallet, nftState])
-
-    const onCompleteWithWallet = useCallback(async () => {
-        if (!publicKey) return
-        setLoadingWallet(true)
-
-        try {
-            const nftAuthority = await getNftAuthorityPDA()
-            const nft = await findNft(nftAuthority)
-            if (!nft) return alert("❌ NFT not found!")
-
-            const tx = await sendCompleteMissionTx({
-                signer: publicKey,
-                mint: new PublicKey(nft.id),
-            })
-
-            const sig = await sendTransaction(tx, connection)
-            console.log("✅ Wallet Tx:", sig)
-        } catch (e) {
-            console.error("❌ Wallet tx error:", e)
-        } finally {
-            setLoadingWallet(false)
-        }
-    }, [publicKey, connection, nftState])
+                    const txid = await sendTransaction(tx, connection, { skipPreflight: true })
+                    console.log(`Mission TX: https://explorer.solana.com/tx/${txid}?cluster=devnet`)
+                }
+            } catch (err) {
+                console.error("Mission failed:", err)
+            } finally {
+                setIsLoadingSession(false)
+                setIsLoadingMainWallet(false)
+            }
+        },
+        [publicKey, sessionWallet, connection, characterDataPDA, nftState]
+    )
 
     return (
         <>
-            {program && (
+            {publicKey && (
                 <VStack>
+                    <Image src="/Mission.png" alt="Mission Icon" width={64} height={64} />
                     <HStack>
-                        {sessionWallet?.sessionToken && (
-                            <Button
-                                onClick={onCompleteWithSession}
-                                loading={loadingSession}
-                                colorScheme="orange"
-                            >
+                        {sessionWallet && sessionWallet.sessionToken && (
+                            <Button isLoading={isLoadingSession} onClick={() => handleCompleteMission(true)}>
                                 Complete Mission (Session)
                             </Button>
                         )}
-                        {publicKey && (
-                            <Button
-                                onClick={onCompleteWithWallet}
-                                loading={loadingWallet}
-                                colorScheme="orange"
-                            >
-                                Complete Mission (Wallet)
-                            </Button>
-                        )}
+                        <Button isLoading={isLoadingMainWallet} onClick={() => handleCompleteMission(false)}>
+                            Complete Mission (MainWallet)
+                        </Button>
                     </HStack>
                 </VStack>
             )}
@@ -141,4 +114,3 @@ const CompleteMissionButton = () => {
 }
 
 export default CompleteMissionButton
-*/

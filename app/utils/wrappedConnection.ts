@@ -93,6 +93,7 @@ export class WrappedConnection extends Connection {
                 id: 'rpd-op-123',
                 params: [groupKey, groupValue, sortBy, limit, page, before, after],
             });
+            // @ts-ignore
             events.push(...response.data.result.items);
 
             return events;
@@ -119,7 +120,7 @@ export class WrappedConnection extends Connection {
                 id: 'rpd-op-123',
                 params: [groupKey, groupValue, sortBy, limit, page, before, after],
             });
-
+            // @ts-ignore
             events.push(...response.data.result.items);
 
             while (true) {
@@ -132,7 +133,7 @@ export class WrappedConnection extends Connection {
                     id: 'rpd-op-123',
                     params: [groupKey, groupValue, sortBy, limit, page, before, after],
                 });
-
+                // @ts-ignore
                 events.push(...response.data.result.items);
                 if (events.length % 1000 !== 0 || response.data.result.items.length === 0) {
                     break;
