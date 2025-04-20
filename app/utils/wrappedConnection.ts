@@ -39,7 +39,6 @@ export class WrappedConnection extends Connection {
                 id: 'rpd-op-123',
                 params: [assetId, sortBy, limit, page, before, after],
             });
-            //console.log("getAssetsByOwner: " + JSON.stringify(response.data));
             return response.data.result;
         } catch (error) {
             console.error(error);

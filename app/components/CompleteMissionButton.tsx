@@ -1,6 +1,4 @@
-//CompleteMissionButton.tsx
 "use client"
-import Image from "next/image"
 import { useCallback, useState } from "react"
 import { Button, HStack, VStack } from "@chakra-ui/react"
 import { useConnection, useWallet } from "@solana/wallet-adapter-react"
@@ -36,7 +34,6 @@ const CompleteMissionButton = () => {
         async (isSession: boolean) => {
             if (!characterDataPDA) return
 
-            console.log("NFT items:", nftState.items)
             const nft = await getNftCharacter()
             if (!nft) {
                 window.alert("Mint your NFT character first")
@@ -52,8 +49,6 @@ const CompleteMissionButton = () => {
                 if (isSession && sessionWallet) {
                     setIsLoadingSession(true)
 
-                    console.log("Trying to complete mission with character PDA(BASE58):", characterDataPDA.toBase58())
-                    console.log("Trying to complete mission with character PDA:", characterDataPDA)
                     const tx = await program.methods
                         .completeMission(XP_GAIN)
                         .accounts({
@@ -65,12 +60,6 @@ const CompleteMissionButton = () => {
                             tokenProgram: TOKEN_2022_PROGRAM_ID,
                         })
                         .transaction()
-
-                    console.log("Trying to complete mission with character PDA(BASE58):", characterDataPDA.toBase58())
-                    console.log("Trying to complete mission with character PDA:", characterDataPDA)
-                    console.log("PUPUPU:", PublicKey.default)
-                    console.log("BEBEBEBBEE:", TOKEN_2022_PROGRAM_ID)
-
 
                     const txids = await sessionWallet.signAndSendTransaction!(tx)
                     console.log("Mission transaction (session):", txids)
@@ -108,13 +97,12 @@ const CompleteMissionButton = () => {
                 <VStack>
                     {/*<Image src="/Mission.png" alt="Mission Icon" width={64} height={64} />*/}
                     <HStack>
-                        {sessionWallet && sessionWallet.sessionToken && (
-                            <Button isLoading={isLoadingSession} onClick={() => handleCompleteMission(true)}>
-                                Complete Mission (Session)
-                            </Button>
-                        )}
-                        <Button isLoading={isLoadingMainWallet} onClick={() => handleCompleteMission(false)}>
-                            Complete Mission (MainWallet)
+                        <Button
+                            colorScheme="green"
+                            isLoading={isLoadingMainWallet}
+                            onClick={() => handleCompleteMission(false)}
+                        >
+                            Complete Mission
                         </Button>
                     </HStack>
                 </VStack>

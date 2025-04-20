@@ -1,4 +1,3 @@
-//CharacterStateProvider.tsx
 "use client"
 import { createContext, useContext, useEffect, useState } from "react"
 import { PublicKey } from "@solana/web3.js"

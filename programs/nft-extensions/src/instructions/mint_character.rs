@@ -1,4 +1,3 @@
-//mint_character.rs
 pub use crate::errors::ProgramErrorCode;
 use anchor_lang::prelude::*;
 use anchor_spl::{
@@ -22,12 +21,7 @@ pub fn mint_character(
     class: String,
     weapon: String,
 ) -> Result<()> {
-    // let extensions = &[
-    //     ExtensionType::MetadataPointer,
-    //     ExtensionType::NonTransferable,
-    // ];
     let mint_space = match
-    // ExtensionType::try_calculate_account_len::<Mint>(extensions)
     ExtensionType::try_calculate_account_len::<Mint>(&[ExtensionType::MetadataPointer])
     {
         Ok(space) => space,
@@ -113,7 +107,6 @@ pub fn mint_character(
         signer
     )?;
 
-    // 6. Add extra metadata
     for (key, val) in [
         ("class", class.as_str()),
         ("weapon", weapon.as_str()),

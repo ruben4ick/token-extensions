@@ -1,4 +1,3 @@
-//NftProvider.tsx
 import { createContext, useContext, useEffect, useState } from "react"
 import { PublicKey } from "@solana/web3.js"
 import { useWallet } from "@solana/wallet-adapter-react"
@@ -24,14 +23,12 @@ export const NftProvider = ({
     const [nftState, setNftState] = useState<any | null>(null)
 
     useEffect( ()  => {
-        console.log("🔍 useEffect triggered. publicKey:", publicKey);
         setNftState(null)
         if (!publicKey) {
             return
         }
-        console.log("Current endpoint:", CONNECTION.rpcEndpoint);
-        getAssetsByOwner(publicKey);
 
+        getAssetsByOwner(publicKey);
     }, [publicKey]);
 
     async function getAssetsByOwner(ownerAddress: PublicKey) {
@@ -39,11 +36,11 @@ export const NftProvider = ({
             sortBy: "created",
             sortDirection: "asc",
         };
-        const limit = 1000;
+        const limit = 1;
         const page = 1;
         const before = "";
         const after = "";
-        console.log("Current endpoint:", CONNECTION.rpcEndpoint);
+
         const allAssetsOwned = await CONNECTION.getAssetsByOwner(
             ownerAddress.toBase58(),
             sortBy,
