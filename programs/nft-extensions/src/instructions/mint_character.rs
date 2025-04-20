@@ -58,7 +58,6 @@ pub fn mint_character(
         &token_2022::ID
     )?;
 
-    // Initialize the metadata pointer
     let init_meta_data_pointer_ix =
         spl_token_2022::extension::metadata_pointer::instruction::initialize(
             &Token2022::id(),
@@ -75,7 +74,6 @@ pub fn mint_character(
         ],
     )?;
 
-    // Initialize the mint cpi
     let mint_cpi_ix = CpiContext::new(
         ctx.accounts.token_program.to_account_info(),
         token_2022::InitializeMint2 {
@@ -89,22 +87,12 @@ pub fn mint_character(
         &ctx.accounts.nft_authority.key(),
         None)?;
 
-    // 5. Записати метадані у PDA
-    // let metadata = &mut ctx.accounts.metadata_account;
-    // metadata.authority = ctx.accounts.payer.key();
-    // metadata.name = name;
-    // metadata.class = class;
-    // metadata.weapon = weapon;
-    // metadata.level = 1;
-    // metadata.experience = 0;
-
     let seeds = b"nft_authority";
     let bump = ctx.bumps.nft_authority;
     let signer: &[&[&[u8]]] = &[&[seeds, &[bump]]];
 
     msg!("Init metadata {0}", ctx.accounts.nft_authority.to_account_info().key);
 
-    // Init the metadata account
     let init_token_meta_data_ix = &spl_token_metadata_interface::instruction::initialize(
         &spl_token_2022::id(),
         ctx.accounts.mint.key,
@@ -113,7 +101,7 @@ pub fn mint_character(
         ctx.accounts.nft_authority.to_account_info().key,
         name.clone(),
         "RPG".to_string(),
-        "https://arweave.net/KztnFY2ZBU4M1nAntxJAuB6ocIyFSmhIysTCnYLxQDg".to_string()
+        "https://arweave.net/8KeqyMgFXz084BoQA_NQ44KEh-tXrkpCimc5WS8Yl1w".to_string()
     );
 
     invoke_signed(
@@ -150,7 +138,14 @@ pub fn mint_character(
         )?;
     }
 
-    // 6. Створити ATA для токена
+    let metadata = &mut ctx.accounts.metadata_account;
+    metadata.authority = ctx.accounts.payer.key();
+    metadata.name = name;
+    metadata.class = class;
+    metadata.weapon = weapon;
+    metadata.level = 1;
+    metadata.xp = 0;
+
     associated_token::create(CpiContext::new(
         ctx.accounts.associated_token_program.to_account_info(),
         associated_token::Create {
@@ -163,7 +158,6 @@ pub fn mint_character(
         },
     ))?;
 
-    // 7. Мінтнути 1 NFT користувачу
     token_2022::mint_to(
         CpiContext::new_with_signer(
             ctx.accounts.token_program.to_account_info(),
@@ -177,7 +171,6 @@ pub fn mint_character(
         1,
     )?;
 
-    // 8. Заморозити можливість домінтити NFT
     token_2022::set_authority(
         CpiContext::new_with_signer(
             ctx.accounts.token_program.to_account_info(),
@@ -195,7 +188,6 @@ pub fn mint_character(
 }
 
 #[derive(Accounts)]
-// #[instruction(name: String, class: String, weapon: String)]
 pub struct MintCharacter<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
@@ -210,19 +202,14 @@ pub struct MintCharacter<'info> {
     pub associated_token_program: Program<'info, AssociatedToken>,
     #[account(init_if_needed, seeds = [b"nft_authority".as_ref()], bump, space = 8, payer = payer)]
     pub nft_authority: Account<'info, NftAuthority>,
-
-
-
-    // #[account(
-    //     init,
-    //     payer = payer,
-    //     space = 8 + CharacterMetadata::LEN,
-    //     seeds = [b"character", payer.key().as_ref()],
-    //     bump
-    // )]
-    // pub metadata_account: Account<'info, CharacterMetadata>,
-
-
+    #[account(
+        init,
+        payer = payer,
+        space = 8 + CharacterMetadata::LEN,
+        seeds = [b"character", payer.key().as_ref()],
+        bump,
+    )]
+    pub metadata_account: Account<'info, CharacterMetadata>,
 }
 
 #[account]

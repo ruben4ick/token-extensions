@@ -13,21 +13,16 @@ pub fn complete_mission(ctx: Context<CompleteMission>, xp_gain: u32) -> Result<(
 
     character.xp += xp_gain;
 
-    // Level up if XP exceeds threshold
     let xp_threshold = (character.level as u32) * 10;
     if character.xp >= xp_threshold {
         character.level += 1;
         character.xp = 0;
     }
 
-    // We use a PDA as a mint authority for the metadata account because we want to be able to update the NFT from
-    // the program.
     let seeds = b"nft_authority";
     let bump = ctx.bumps.nft_authority;
     let signer: &[&[&[u8]]] = &[&[seeds, &[bump]]];
 
-    // Update the metadata account with an additional metadata field in this case the player level
-    // Update metadata field "level"
     let ix_level = spl_token_metadata_interface::instruction::update_field(
         &spl_token_2022::id(),
         ctx.accounts.mint.to_account_info().key,
@@ -44,7 +39,6 @@ pub fn complete_mission(ctx: Context<CompleteMission>, xp_gain: u32) -> Result<(
         signer,
     )?;
 
-    // Update metadata field "xp"
     let ix_xp = spl_token_metadata_interface::instruction::update_field(
         &spl_token_2022::id(),
         ctx.accounts.mint.to_account_info().key,
@@ -71,7 +65,6 @@ pub fn complete_mission(ctx: Context<CompleteMission>, xp_gain: u32) -> Result<(
 }
 
 #[derive(Accounts)]
-#[instruction(level_seed: String)]
 pub struct CompleteMission<'info> {
     #[account(
         mut,

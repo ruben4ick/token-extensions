@@ -12,6 +12,14 @@ pub struct CharacterMetadata {
 }
 
 impl CharacterMetadata {
+    pub const LEN: usize =
+        32 +
+            (4 + 32) +
+            (4 + 32) +
+            (4 + 32) +
+            1 +
+            4;
+
     pub fn gain_xp(&mut self, amount: u32) {
         self.xp += amount;
     }

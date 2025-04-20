@@ -33,10 +33,10 @@ const MintCharacterButton = () => {
                 ASSOCIATED_TOKEN_PROGRAM_ID
             )
 
-            // const metadataPDA = PublicKey.findProgramAddressSync(
-            //     [Buffer.from("character"), publicKey.toBuffer()],
-            //     program.programId
-            // )[0]
+            const [metadataPDA] = PublicKey.findProgramAddressSync(
+                [Buffer.from("character"), publicKey.toBuffer()],
+                program.programId
+            )
 
             const nftAuthority = PublicKey.findProgramAddressSync(
                 [Buffer.from("nft_authority")],
@@ -54,6 +54,7 @@ const MintCharacterButton = () => {
                     mint: mint.publicKey,
                     tokenAccount,
                     nftAuthority: nftAuthority[0],
+                    metadataAccount: metadataPDA,
                 })
                 .signers([mint])
                 .transaction()

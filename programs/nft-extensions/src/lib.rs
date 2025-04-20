@@ -7,16 +7,11 @@ pub mod errors;
 
 use instructions::*;
 
-declare_id!("BDGkn8TaSruGCNHyq5BJqUwzFXcXpPACzGMHM8dw4KfQ");
+declare_id!("8kN9qyN4bhaXQfaAniiy486Fn7FggGEfHmpwqeZ1Uqox");
 
 #[program]
 pub mod nft_extensions {
     use super::*;
-
-    /// Ініціалізація програми, викликає функцію із модуля instructions
-    // pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-    //     initialize::initialize(ctx)
-    // }
 
     pub fn mint_character(
         ctx: Context<MintCharacter>,

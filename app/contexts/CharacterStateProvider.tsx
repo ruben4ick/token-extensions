@@ -17,7 +17,7 @@ const CharacterStateContext = createContext<CharacterStateContextType>({
 
 export const useCharacterState = () => useContext(CharacterStateContext)
 
-export const CharacterStateProvider = ({ children }: { children: React.ReactNode }) => {
+const CharacterStateProvider = ({ children }: { children: React.ReactNode }) => {
     const { publicKey } = useWallet()
     const { connection } = useConnection()
 
@@ -33,6 +33,8 @@ export const CharacterStateProvider = ({ children }: { children: React.ReactNode
         )
         setCharacterDataPDA(pda)
 
+
+        // @ts-ignore
         program.account.characterMetadata
             .fetch(pda)
             .then((data) => {
@@ -58,3 +60,5 @@ export const CharacterStateProvider = ({ children }: { children: React.ReactNode
         </CharacterStateContext.Provider>
     )
 }
+
+export default CharacterStateProvider;
