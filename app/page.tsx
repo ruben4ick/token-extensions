@@ -21,7 +21,10 @@ export default function Home() {
         </Flex>
             <VStack spacing={6} p={6}>
                 <Heading>Token Extensions</Heading>
-                <MintCharacterModal />
+
+                {!character && (
+                    <MintCharacterModal />
+                )}
 
                 {character && nft ? (
                     <Box

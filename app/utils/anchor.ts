@@ -14,7 +14,7 @@ export const METAPLEX_READAPI = `https://devnet.helius-rpc.com/?api-key=${proces
 const provider = new AnchorProvider(CONNECTION, null as any, AnchorProvider.defaultOptions());
 export const program = new Program(idl as NftExtensions, provider);
 
-export type CharacterMetadata = IdlAccounts<NftExtensions>['characterMetadata'];
+export type CharacterMetadata = IdlAccounts<NftExtensions>['CharacterMetadata'];
 
 
 

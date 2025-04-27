@@ -38,25 +38,31 @@ const MintCharacterModal = () => {
     const { isOpen, onOpen, onClose } = useDisclosure()
 
     const [name, setName] = useState("")
-    const [classType, setClassType] = useState("warrior")
+    const [classType, setClassType] = useState("Warrior")
     const [weapon, setWeapon] = useState("")
     const [isMinting, setIsMinting] = useState(false)
 
     const classImage = {
-        warrior: "/Warrior.png",
-        archer: "/Archer.png",
-        mage: "/Mage.png",
+        Warrior: "/Warrior.png",
+        Archer: "/Archer.png",
+        Mage: "/Mage.png",
     }
 
     const classDescription = {
-        warrior: "Strong melee fighter with high defense.",
-        archer: "Agile ranged attacker with fast strikes.",
-        mage: "Master of magic with powerful spells.",
+        Warrior: "Strong melee fighter with high defense",
+        Archer: "Agile ranged attacker with fast strikes",
+        Mage: "Master of magic with powerful spells",
     }
 
     const handleMint = async () => {
         if (!publicKey || !name || !weapon) return
         setIsMinting(true)
+
+        const uriMapping = {
+            Warrior: "https://arweave.net/SM3UTFwlDHG_X5_VXqm5ALwUairPpxy_PfuoA6sI9pc",
+            Archer: "https://arweave.net/M4OWZK-ZkTBD460iXdIKMnM4F-xzViHHBsX3GCYSNbc",
+            Mage: "https://arweave.net/G2-CzvZg9eFd2UwKFA6PtKba4NgU3h8TRul6aSZE2-o",
+        }
 
         try {
             const mint = new Keypair()
@@ -78,8 +84,10 @@ const MintCharacterModal = () => {
                 program.programId
             )
 
+            const selectedUri = uriMapping[classType as keyof typeof uriMapping]
+
             const tx = await program.methods
-                .mintCharacter(name, classType, weapon)
+                .mintCharacter(name, classType, weapon, selectedUri)
                 .accounts({
                     payer: publicKey,
                     mint: mint.publicKey,

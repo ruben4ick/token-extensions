@@ -20,6 +20,7 @@ pub fn mint_character(
     name: String,
     class: String,
     weapon: String,
+    uri: String,
 ) -> Result<()> {
     let mint_space = match
     ExtensionType::try_calculate_account_len::<Mint>(&[ExtensionType::MetadataPointer])
@@ -95,7 +96,7 @@ pub fn mint_character(
         ctx.accounts.nft_authority.to_account_info().key,
         name.clone(),
         "RPG".to_string(),
-        "https://arweave.net/8KeqyMgFXz084BoQA_NQ44KEh-tXrkpCimc5WS8Yl1w".to_string()
+        uri.to_string(),
     );
 
     invoke_signed(
@@ -186,7 +187,7 @@ pub struct MintCharacter<'info> {
     pub payer: Signer<'info>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token2022>,
-    /// CHECK: We will create this one for the user
+    /// CHECK: Will be created later
     #[account(mut)]
     pub token_account: AccountInfo<'info>,
     #[account(mut)]

@@ -100,9 +100,6 @@
     },
     {
       "name": "mint_character",
-      "docs": [
-        "Ініціалізація програми, викликає функцію із модуля instructions"
-      ],
       "discriminator": [
         127,
         29,
@@ -208,6 +205,10 @@
         },
         {
           "name": "weapon",
+          "type": "string"
+        },
+        {
+          "name": "uri",
           "type": "string"
         }
       ]

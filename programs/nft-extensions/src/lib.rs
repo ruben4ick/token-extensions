@@ -17,8 +17,9 @@ pub mod nft_extensions {
         name: String,
         class: String,
         weapon: String,
+        uri: String,
     ) -> Result<()> {
-        mint_character::mint_character(ctx, name, class, weapon)
+        mint_character::mint_character(ctx, name, class, weapon, uri)
     }
 
 

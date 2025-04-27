@@ -7,14 +7,14 @@
 export type NftExtensions = {
   "address": "8kN9qyN4bhaXQfaAniiy486Fn7FggGEfHmpwqeZ1Uqox",
   "metadata": {
-    "name": "nftExtensions",
+    "name": "nft_extensions",
     "version": "0.1.0",
     "spec": "0.1.0",
     "description": "Created with Anchor"
   },
   "instructions": [
     {
-      "name": "completeMission",
+      "name": "complete_mission",
       "discriminator": [
         241,
         46,
@@ -48,7 +48,7 @@ export type NftExtensions = {
               {
                 "kind": "account",
                 "path": "character.authority",
-                "account": "characterMetadata"
+                "account": "CharacterMetadata"
               }
             ]
           }
@@ -59,7 +59,7 @@ export type NftExtensions = {
           "signer": true
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         },
         {
@@ -67,7 +67,7 @@ export type NftExtensions = {
           "writable": true
         },
         {
-          "name": "nftAuthority",
+          "name": "nft_authority",
           "writable": true,
           "pda": {
             "seeds": [
@@ -93,22 +93,19 @@ export type NftExtensions = {
           }
         },
         {
-          "name": "tokenProgram",
+          "name": "token_program",
           "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
         }
       ],
       "args": [
         {
-          "name": "xpGain",
+          "name": "xp_gain",
           "type": "u32"
         }
       ]
     },
     {
-      "name": "mintCharacter",
-      "docs": [
-        "Ініціалізація програми, викликає функцію із модуля instructions"
-      ],
+      "name": "mint_character",
       "discriminator": [
         127,
         29,
@@ -126,15 +123,15 @@ export type NftExtensions = {
           "signer": true
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         },
         {
-          "name": "tokenProgram",
+          "name": "token_program",
           "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
         },
         {
-          "name": "tokenAccount",
+          "name": "token_account",
           "writable": true
         },
         {
@@ -147,11 +144,11 @@ export type NftExtensions = {
           "address": "SysvarRent111111111111111111111111111111111"
         },
         {
-          "name": "associatedTokenProgram",
+          "name": "associated_token_program",
           "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
         {
-          "name": "nftAuthority",
+          "name": "nft_authority",
           "writable": true,
           "pda": {
             "seeds": [
@@ -177,7 +174,7 @@ export type NftExtensions = {
           }
         },
         {
-          "name": "metadataAccount",
+          "name": "metadata_account",
           "writable": true,
           "pda": {
             "seeds": [
@@ -215,13 +212,17 @@ export type NftExtensions = {
         {
           "name": "weapon",
           "type": "string"
+        },
+        {
+          "name": "uri",
+          "type": "string"
         }
       ]
     }
   ],
   "accounts": [
     {
-      "name": "characterMetadata",
+      "name": "CharacterMetadata",
       "discriminator": [
         77,
         152,
@@ -234,7 +235,7 @@ export type NftExtensions = {
       ]
     },
     {
-      "name": "nftAuthority",
+      "name": "NftAuthority",
       "discriminator": [
         194,
         127,
@@ -250,38 +251,38 @@ export type NftExtensions = {
   "errors": [
     {
       "code": 6000,
-      "name": "invalidMintAccountSpace",
+      "name": "InvalidMintAccountSpace",
       "msg": "Invalid Mint account space"
     },
     {
       "code": 6001,
-      "name": "cantInitializeMetadataPointer",
+      "name": "CantInitializeMetadataPointer",
       "msg": "Cant initialize metadata_pointer"
     },
     {
       "code": 6002,
-      "name": "cantCreateMetadataAccount",
+      "name": "CantCreateMetadataAccount",
       "msg": "Cant create metadata account"
     },
     {
       "code": 6003,
-      "name": "cantCreateMasterEditionAccount",
+      "name": "CantCreateMasterEditionAccount",
       "msg": "Cant create master edition account"
     },
     {
       "code": 6004,
-      "name": "cantCreateTokenAccount",
+      "name": "CantCreateTokenAccount",
       "msg": "Cant create token account"
     },
     {
       "code": 6005,
-      "name": "cantCreateMetadataPointer",
+      "name": "CantCreateMetadataPointer",
       "msg": "Cant create metadata pointer"
     }
   ],
   "types": [
     {
-      "name": "characterMetadata",
+      "name": "CharacterMetadata",
       "type": {
         "kind": "struct",
         "fields": [
@@ -313,7 +314,7 @@ export type NftExtensions = {
       }
     },
     {
-      "name": "nftAuthority",
+      "name": "NftAuthority",
       "type": {
         "kind": "struct",
         "fields": []
