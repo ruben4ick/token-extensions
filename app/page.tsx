@@ -67,7 +67,9 @@ export default function Home() {
                     <Skeleton height="300px" width="400px" />
                 )}
 
-                <CompleteMissionButton />
+                {character && (
+                    <CompleteMissionButton />
+                )}
             </VStack>
         </Box>
     )

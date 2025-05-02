@@ -1,0 +1,28 @@
+[package]
+name = "nft-extensions"
+version = "0.1.0"
+description = "Created with Anchor"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "nft_extensions"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build"]
+
+[dependencies]
+anchor-lang = { git = "https://github.com/cryptopapi997/anchor", branch = "fix-proc-macro-2",  features = ["init-if-needed"] }
+anchor-spl  = { git = "https://github.com/cryptopapi997/anchor", branch = "fix-proc-macro-2" }
+spl-token-2022 = { version="8.0.1", features = [ "no-entrypoint" ] }
+solana-program = "2.2.1"
+spl-token = { version = "8.0.0", features = [ "no-entrypoint" ] }
+spl-token-metadata-interface = "0.7.0"
+
+
+
